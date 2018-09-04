@@ -27,12 +27,13 @@ namespace FormsSample
 		[Preserve]
 		public Charts(ApplicationOptions options = null) : base(options)
         {
-            //ファクトリクラスに初期化の責務を与えるためリソースキャッシュを渡す
-            //Here pass ResourceCache to the factory to be responsible to initialize new objects
+            //pattern1 (crash): pass ResourceCache and BarFactory holds instance
             barFactory = new BarFactory(ResourceCache);
+            //pattern2 (NOT crash): do not pass ResourceCache
+            //barFactory = new BarFactory(null);
         }
 
-		static Charts()
+        static Charts()
 		{
 			UnhandledException += (s, e) =>
 			{
@@ -77,19 +78,10 @@ namespace FormsSample
             bars = new List<Bar>(size * size);
             //リファクタリングのつもり
             //refactor the factory process..
+            //pattern1 (crash): do not give ResourceCache here, because it is given in constructor.
             barFactory.AddBarsToScene(plotNode, bars, size);
-            //for (var i = 0f; i < size * 1.5f; i += 1.5f)
-            //{
-            //	for (var j = 0f; j < size * 1.5f; j += 1.5f)
-            //	{
-            //		var boxNode = plotNode.CreateChild();
-            //		boxNode.Position = new Vector3(size / 2f - i, 0, size / 2f - j);
-            //		var box = new Bar(new Color(RandomHelper.NextRandom(), RandomHelper.NextRandom(), RandomHelper.NextRandom(), 0.9f));
-            //		boxNode.AddComponent(box);
-            //		box.SetValueWithAnimation((Math.Abs(i) + Math.Abs(j) + 1) / 2f);
-            //		bars.Add(box);
-            //	}
-            //}
+            //pattern2 (NOT crash): set ResourceCache here.
+            //barFactory.AddBarsToScene(plotNode, bars, size, ResourceCache);
 
             SelectedBar = bars.First();
 			SelectedBar.Select();
