@@ -18,13 +18,19 @@ namespace FormsSample
 		Camera camera;
 		Octree octree;
 		List<Bar> bars;
+        BarFactory barFactory;
 
 		public Bar SelectedBar { get; private set; }
 
 		public IEnumerable<Bar> Bars => bars;
 
 		[Preserve]
-		public Charts(ApplicationOptions options = null) : base(options) { }
+		public Charts(ApplicationOptions options = null) : base(options)
+        {
+            //ファクトリクラスに初期化の責務を与えるためリソースキャッシュを渡す
+            //Here pass ResourceCache to the factory to be responsible to initialize new objects
+            barFactory = new BarFactory(ResourceCache);
+        }
 
 		static Charts()
 		{
@@ -68,21 +74,24 @@ namespace FormsSample
 
 			int size = 3;
 			baseNode.Scale = new Vector3(size * 1.5f, 1, size * 1.5f);
-			bars = new List<Bar>(size * size);
-			for (var i = 0f; i < size * 1.5f; i += 1.5f)
-			{
-				for (var j = 0f; j < size * 1.5f; j += 1.5f)
-				{
-					var boxNode = plotNode.CreateChild();
-					boxNode.Position = new Vector3(size / 2f - i, 0, size / 2f - j);
-					var box = new Bar(new Color(RandomHelper.NextRandom(), RandomHelper.NextRandom(), RandomHelper.NextRandom(), 0.9f));
-					boxNode.AddComponent(box);
-					box.SetValueWithAnimation((Math.Abs(i) + Math.Abs(j) + 1) / 2f);
-					bars.Add(box);
-				}
-			}
+            bars = new List<Bar>(size * size);
+            //リファクタリングのつもり
+            //refactor the factory process..
+            barFactory.AddBarsToScene(plotNode, bars, size);
+            //for (var i = 0f; i < size * 1.5f; i += 1.5f)
+            //{
+            //	for (var j = 0f; j < size * 1.5f; j += 1.5f)
+            //	{
+            //		var boxNode = plotNode.CreateChild();
+            //		boxNode.Position = new Vector3(size / 2f - i, 0, size / 2f - j);
+            //		var box = new Bar(new Color(RandomHelper.NextRandom(), RandomHelper.NextRandom(), RandomHelper.NextRandom(), 0.9f));
+            //		boxNode.AddComponent(box);
+            //		box.SetValueWithAnimation((Math.Abs(i) + Math.Abs(j) + 1) / 2f);
+            //		bars.Add(box);
+            //	}
+            //}
 
-			SelectedBar = bars.First();
+            SelectedBar = bars.First();
 			SelectedBar.Select();
 
 			
